@@ -27,7 +27,7 @@ def ReadData( fileName ):
     DataDF = DataDF.set_index('Date')
     
     # define and initialize the missing data dictionary
-    ReplacedValuesDF = pd.DataFrame(0, index=["1. No Data", "2. Gross Error", "3. Replaced Values", "Failed Checks"], columns=colNames[1:])
+    ReplacedValuesDF = pd.DataFrame(0, index=["1. No Data", "2. Gross Error", "3. Replaced Values", "Range Fail"], columns=colNames[1:])
      
     return( DataDF, ReplacedValuesDF )
  
@@ -64,23 +64,23 @@ def Check02_GrossErrors( DataDF, ReplacedValuesDF ):
     
     #precipitation GEC 
     for i in range (0,len(DataDF)-1):
-           if (DataDF.iloc[i,0]<0) or (DataDF.iloc[i,0]>= 25):
+           if (DataDF.iloc[i,0]<0) or (DataDF.iloc[i,0]> 25):
                DataDF.iloc[i,0]= np.nan
         
     #temperature GEC
     #Min temp 
     for i in range (0,len(DataDF)-1):
-           if DataDF.iloc[i,2]<= (-25):
+           if DataDF.iloc[i,2]< (-25):
                DataDF.iloc[i,2]= np.nan
                
     #MaxTemp 
     for i in range (0,len(DataDF)-1):
-           if DataDF.iloc[i, 1] >= (35):
+           if DataDF.iloc[i, 1] > (35):
                DataDF.iloc[i,1]= np.nan
                
     #Wind Speed GEC           
     for i in range (0,len(DataDF)-1):
-           if (DataDF.iloc[i, 3]< 0) or (DataDF.iloc[i, 3]>=10):
+           if (DataDF.iloc[i, 3]< 0) or (DataDF.iloc[i, 3]> 10):
                DataDF.iloc[i,0]= np.nan
 
     ReplacedValuesDF.iloc[0,0]=DataDF['Precip'].isna().sum() - ReplacedValuesDF.iloc[0,0]
@@ -97,7 +97,7 @@ def Check03_TmaxTminSwapped( DataDF, ReplacedValuesDF ):
     of how many times the fix has been applied."""
     
     # add your code here
-
+    '''
     # create function for number of days whenmax air temp is less than min air temp
        
     T_cum= len(DataDF.loc[DataDF['Max Temp'] < DataDF['Min Temp']])
@@ -108,6 +108,22 @@ def Check03_TmaxTminSwapped( DataDF, ReplacedValuesDF ):
     # create a running total of the replaced data 
     ReplacedValuesDF.loc["3. Swapped"]=[0, T_cum, T_cum, 0]
 
+    return( DataDF, ReplacedValuesDF )
+    '''
+    
+   
+    # create function for number of days when max air temp is less than min air temp
+       
+    ReplacedValuesDF.iloc[2,1]=(DataDF['Min Temp']> DataDF['Max Temp']).sum()
+    ReplacedValuesDF.iloc[2,2]=(DataDF['Min Temp']> DataDF['Max Temp']).sum()
+    
+    # swap the values where max temp is less than min temp
+    for i in range (0,len(DataDF)-1):
+           if DataDF.iloc[i,1] < DataDF.iloc[i,2]:
+               T_swap=DataDF.iloc[i,2]
+               DataDF.iloc[i,2]= DataDF.iloc[i,1]
+               DataDF.iloc[i,1]=T_swap
+     # create a running total of the replaced data          
     return( DataDF, ReplacedValuesDF )
     
 def Check04_TmaxTminRange( DataDF, ReplacedValuesDF ):
