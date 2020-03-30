@@ -1,6 +1,11 @@
 #!/bin/env python
 # add your header here
-#
+#This script creates a series of data quality checks for the 'DataQualityChecking.txt' file
+#Checks include replacing defined no data (-999) with NAN, removal of gross errors as commented, swapping max and min air
+#Temp as commented, and subtracting max and min air range as commented
+#Script outputs replaced values cumulative, scatterplots per wind, precip, and air temp checks, failed data, and changed value count totals
+#Created by Aaron Etienne (aetienne93 Github and aetienne Purdue uname) on 3/27/20
+
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
@@ -59,7 +64,7 @@ def Check02_GrossErrors( DataDF, ReplacedValuesDF ):
     
     #precipitation GEC 
     for i in range (0,len(DataDF)-1):
-           if (DataDF.iloc[i,0]<0) or (DataDF.iloc[i,0]>25):
+           if (DataDF.iloc[i,0]<0) or (DataDF.iloc[i,0]>= 25):
                DataDF.iloc[i,0]= np.nan
         
     #temperature GEC
@@ -68,14 +73,14 @@ def Check02_GrossErrors( DataDF, ReplacedValuesDF ):
            if DataDF.iloc[i,2]<= (-25):
                DataDF.iloc[i,2]= np.nan
                
-    #Min Temp 
+    #MaxTemp 
     for i in range (0,len(DataDF)-1):
            if DataDF.iloc[i, 1] >= (35):
                DataDF.iloc[i,1]= np.nan
                
-    #Precipitation GEC           
+    #Wind Speed GEC           
     for i in range (0,len(DataDF)-1):
-           if (DataDF.iloc[i, 3]<=0) or (DataDF.iloc[1, 3]>=25):
+           if (DataDF.iloc[i, 3]< 0) or (DataDF.iloc[i, 3]>=10):
                DataDF.iloc[i,0]= np.nan
 
     ReplacedValuesDF.iloc[0,0]=DataDF['Precip'].isna().sum() - ReplacedValuesDF.iloc[0,0]
@@ -114,12 +119,12 @@ def Check04_TmaxTminRange( DataDF, ReplacedValuesDF ):
     
     # add your code here
     
-    # find the number of days when max air temp minus min air temp is greater than 25 degrees celcius (outliers)
+    # find the number of days when max air temp minus min air temp is greater than or equal to 25 degrees celcius (outliers)
        
-    Tdays_cum= len(DataDF.loc[(DataDF['Max Temp'] - DataDF['Min Temp']>25)])
+    Tdays_cum= len(DataDF.loc[(DataDF['Max Temp'] - DataDF['Min Temp']>=25)])
    
-    # replace values in which max temp minus min temp is greater than 25 degrees c with an NAN value 
-    DataDF.loc[(DataDF['Max Temp']-DataDF['Min Temp']>25),['Max Temp','Min Temp']]= np.nan
+    # replace values in which max temp minus min temp is greater than or equal to 25 degrees c with an NAN value 
+    DataDF.loc[(DataDF['Max Temp']-DataDF['Min Temp']>=25),['Max Temp','Min Temp']]= np.nan
     
     # total ampount (cumulative) data values that are replaced with NAN
     ReplacedValuesDF.loc["4. Range"]=[0, Tdays_cum, Tdays_cum, 0]
@@ -154,6 +159,9 @@ if __name__ == '__main__':
     
     print("\nAll processing finished.....\n", DataDF.describe())
     print("\nFinal changed values counts.....\n", ReplacedValuesDF)
+    
+    plt.plot(ReplacedValuesDF)
+    plt.savefig('repval.png')
 
 ##################################################################
     # Plot each dataset before and after correction has been made.
@@ -169,41 +177,41 @@ if __name__ == '__main__':
     Org_DF = Org_DF.set_index('Date')
     
     # create scatter plot of before and after data checking for precipitation
-    plt.scatter(DataDF.index, Org_DF['Precip'],color = 'purple',label = 'Before Data Quality Check' )
-    plt.plot(DataDF.index, DataDF['Precip'],color = 'red', label = 'After Data Quality Check')
+    plt.scatter(DataDF.index, Org_DF['Precip'],color = 'red',label = 'Before Data Quality Check' )
+    plt.plot(DataDF.index, DataDF['Precip'],color = 'midnightblue', label = 'After Data Quality Check')
     plt.xlabel('Date (1915-1916)')
     plt.ylabel('Precipitation (mm)')
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=20)
     plt.legend(loc='lower left')
     plt.savefig('precip_fix.png')
     plt.close()
     
     # create scatter plot of before and after data checking max air temp 
-    plt.scatter(DataDF.index, Org_DF['Max Temp'],color = 'blue',label = 'Before Data Quality Check' )
-    plt.plot(DataDF.index, DataDF['Max Temp'],color = 'red', label = 'After Data Quality Check')
+    plt.scatter(DataDF.index, Org_DF['Max Temp'],color = 'red',label = 'Before Data Quality Check' )
+    plt.plot(DataDF.index, DataDF['Max Temp'],color = 'aqua', label = 'After Data Quality Check')
     plt.xlabel('Date (1915-1916)')
     plt.ylabel("Max Air Temperature (°C)")
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=20)
     plt.legend(loc='lower left')
     plt.savefig('max_temp_fix.png')
     plt.close()
   
     # create scatter plot of before and after data checking min air temp 
-    plt.scatter(DataDF.index, Org_DF['Min Temp'],color = 'green' ,label = 'Before Data Quality Check' )
-    plt.plot(DataDF.index, DataDF['Min Temp'],color = 'red', label = 'After Data Quality Check')
+    plt.scatter(DataDF.index, Org_DF['Min Temp'],color = 'red' ,label = 'Before Data Quality Check' )
+    plt.plot(DataDF.index, DataDF['Min Temp'],color = 'green', label = 'After Data Quality Check')
     plt.xlabel('Date (1915-1916)')
     plt.ylabel("Min Air Temperature (°C)")
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=20)
     plt.legend(loc='lower left')
     plt.savefig('min_temp_fix.png')
     plt.close()
   
     # create scatter plot of before and after data checking wind speed  
-    plt.scatter(DataDF.index, Org_DF['Wind Speed'],color = 'chartreuse',label = 'Before Data Quality Check' )
-    plt.plot(DataDF.index, DataDF['Wind Speed'],color = 'orangered', label = 'After Data Quality Check')
+    plt.scatter(DataDF.index, Org_DF['Wind Speed'],color = 'red',label = 'Before Data Quality Check' )
+    plt.plot(DataDF.index, DataDF['Wind Speed'],color = 'blue', label = 'After Data Quality Check')
     plt.xlabel('Date (1915-1916)')
     plt.ylabel("Wind Speed (m/s)")
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=20)
     plt.legend(loc='upper right')
     plt.savefig('wind_fix.png')
     plt.close() 
