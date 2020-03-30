@@ -27,7 +27,7 @@ def ReadData( fileName ):
     DataDF = DataDF.set_index('Date')
     
     # define and initialize the missing data dictionary
-    ReplacedValuesDF = pd.DataFrame(0, index=["1. No Data", "2. Gross Error", "3. Replaced Values", "Range Fail"], columns=colNames[1:])
+    ReplacedValuesDF = pd.DataFrame(0, index=['1. No Data', '2. Gross Error', '3. Swapped', '4. Range Fail'], columns=colNames[1:])
      
     return( DataDF, ReplacedValuesDF )
  
