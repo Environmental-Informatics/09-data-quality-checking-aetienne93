@@ -1,7 +1,5 @@
 	Precip	Max Temp	Min Temp	Wind Speed
-1. No Data	17	14	2	0
+1. No Data	0	0	0	0
 2. Gross Error	0	0	0	0
-3. Replaced Values	0	0	0	0
-Failed Checks	0	0	0	0
-3. Swapped	0	4	4	0
-4. Range	0	5	5	0
+3. Swapped	0	0	0	0
+4. Range Fail	0	21	9	0

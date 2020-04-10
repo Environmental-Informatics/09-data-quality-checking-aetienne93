@@ -1,0 +1,32 @@
+﻿Script Name: Program_09.py
+Script Author: Aaron Etienne
+Script Creation Date: 3/27/20 
+
+
+This script creates a series of data quality checks for the 'DataQualityChecking.txt' file. The values in this file are derived from sensor data that checks for precipitation (shown in Figure 1), Maximum Temperature (shown in Figure 2), Minimum Temperature (shown in Figure 3), and Wind Speed (shown in Figure 4). Data quality checking implemented in this script  include: 
+1.  Replacing defined no data values (-999) with NAN
+2. Removal of gross errors that would not make sense given the season in collection location (temperatures less than -25 degrees Celsius or greater than 35 degrees Celsius, precipitation less than 0 and greater than 25 [milimeters], and wind speed less than 0 and greater than 10 [meters per second] ) with NAN
+3. Checking logic- If min temp value is greater than max temp value for a given day, values are switched 
+4.Checking logic- If the difference between max and min temps are greater than 25 degrees C, then values are set to NAN
+
+Finally, this script outputs replaced, cumulative values, creates scatterplots per wind, precip, and air temp checks, outputs a text file of cumulative failed data points,  and outputs a table of changed value count totals. 
+
+Figure 1: Daily Precipitation Data Values from 1915-1916. 
+
+
+
+
+Figure 2: Daily Maximum Temperature Data Values from 1915-1916. 
+
+
+Figure 3: Daily Minimum Temperature Data Values From 1915-1916. 
+
+
+
+
+Figure 4: Daily Wind Speed Data Values from 1915-1916 
+
+
+Table 1: Changed data points in each column per quality check (cumulative)
+
+

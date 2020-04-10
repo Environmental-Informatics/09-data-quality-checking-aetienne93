@@ -22,11 +22,13 @@ def ReadData( fileName ):
     colNames = ['Date','Precip','Max Temp', 'Min Temp','Wind Speed']
 
     # open and read the file
+    global DataDF
     DataDF = pd.read_csv("DataQualityChecking.txt",header=None, names=colNames,  
                          delimiter=r"\s+",parse_dates=[0])
     DataDF = DataDF.set_index('Date')
     
     # define and initialize the missing data dictionary
+    global ReplacedValuesDF
     ReplacedValuesDF = pd.DataFrame(0, index=['1. No Data', '2. Gross Error', '3. Swapped', '4. Range Fail'], columns=colNames[1:])
      
     return( DataDF, ReplacedValuesDF )
@@ -64,7 +66,7 @@ def Check02_GrossErrors( DataDF, ReplacedValuesDF ):
     
     #precipitation GEC 
     for i in range (0,len(DataDF)-1):
-           if (DataDF.iloc[i,0]<0) or (DataDF.iloc[i,0]> 25):
+           if (DataDF.iloc[i,0]< 0) or (DataDF.iloc[i,0]>25):
                DataDF.iloc[i,0]= np.nan
         
     #temperature GEC
@@ -81,12 +83,12 @@ def Check02_GrossErrors( DataDF, ReplacedValuesDF ):
     #Wind Speed GEC           
     for i in range (0,len(DataDF)-1):
            if (DataDF.iloc[i, 3]< 0) or (DataDF.iloc[i, 3]> 10):
-               DataDF.iloc[i,0]= np.nan
+               DataDF.iloc[i,3]= np.nan
 
-    ReplacedValuesDF.iloc[0,0]=DataDF['Precip'].isna().sum() - ReplacedValuesDF.iloc[0,0]
-    ReplacedValuesDF.iloc[0,1]=DataDF['Max Temp'].isna().sum() - ReplacedValuesDF.iloc[0,1]
-    ReplacedValuesDF.iloc[0,2]=DataDF['Min Temp'].isna().sum() - ReplacedValuesDF.iloc[0,2]
-    ReplacedValuesDF.iloc[0,3]=DataDF['Wind Speed'].isna().sum() - ReplacedValuesDF.iloc[0,3]
+    ReplacedValuesDF.iloc[1,0]=DataDF['Precip'].isna().sum() - ReplacedValuesDF.iloc[0,0]
+    ReplacedValuesDF.iloc[1,1]=DataDF['Max Temp'].isna().sum() - ReplacedValuesDF.iloc[0,1]
+    ReplacedValuesDF.iloc[1,2]=DataDF['Min Temp'].isna().sum() - ReplacedValuesDF.iloc[0,2]
+    ReplacedValuesDF.iloc[1,3]=DataDF['Wind Speed'].isna().sum() - ReplacedValuesDF.iloc[0,3]
 
     return( DataDF, ReplacedValuesDF )
     
@@ -127,6 +129,7 @@ def Check03_TmaxTminSwapped( DataDF, ReplacedValuesDF ):
     return( DataDF, ReplacedValuesDF )
     
 def Check04_TmaxTminRange( DataDF, ReplacedValuesDF ):
+    
     """This function checks for days when maximum air temperture minus 
     minimum air temperature exceeds a maximum range, and replaces both values 
     with NaNs when found.  The function returns modified DataFrames with data 
@@ -135,6 +138,7 @@ def Check04_TmaxTminRange( DataDF, ReplacedValuesDF ):
     
     # add your code here
     
+    '''
     # find the number of days when max air temp minus min air temp is greater than or equal to 25 degrees celcius (outliers)
        
     Tdays_cum= len(DataDF.loc[(DataDF['Max Temp'] - DataDF['Min Temp']>=25)])
@@ -144,7 +148,16 @@ def Check04_TmaxTminRange( DataDF, ReplacedValuesDF ):
     
     # total ampount (cumulative) data values that are replaced with NAN
     ReplacedValuesDF.loc["4. Range"]=[0, Tdays_cum, Tdays_cum, 0]
-
+    '''
+    
+    for i in range (0, len(DataDF)-1):
+        if (DataDF.iloc[i,1]-DataDF.iloc[i,2]) >=25:
+            DataDF.iloc[i,1]=np.nan
+            DataDF.iloc[i,2]=np.nan
+            
+    ReplacedValuesDF.iloc[3,1]=DataDF['Max Temp'].isna().sum()-(ReplacedValuesDF.iloc[1,1] + ReplacedValuesDF.iloc[0,1])
+    ReplacedValuesDF.iloc[3,2]=DataDF['Min Temp'].isna().sum()-(ReplacedValuesDF.iloc[1,2] +ReplacedValuesDF.iloc[0,2])
+    
     return( DataDF, ReplacedValuesDF )
     
 
@@ -176,9 +189,20 @@ if __name__ == '__main__':
     print("\nAll processing finished.....\n", DataDF.describe())
     print("\nFinal changed values counts.....\n", ReplacedValuesDF)
     
-    plt.plot(ReplacedValuesDF)
-    plt.savefig('repval.png')
+    #check 01
+    Check01_RemoveNoDataValues( DataDF, ReplacedValuesDF )
 
+    #check 02
+    Check02_GrossErrors( DataDF, ReplacedValuesDF )
+
+    #Check 03
+    Check03_TmaxTminSwapped( DataDF, ReplacedValuesDF )
+
+    #check 04
+    Check04_TmaxTminRange( DataDF, ReplacedValuesDF )
+    
+    
+    
 ##################################################################
     # Plot each dataset before and after correction has been made.
     #Use a single set of axis for each variable, and
@@ -230,6 +254,7 @@ if __name__ == '__main__':
     plt.xticks(rotation=20)
     plt.legend(loc='upper right')
     plt.savefig('wind_fix.png')
+    plt.show()
     plt.close() 
 
     #export data quality check (DQC) data frame (DF) to text file
